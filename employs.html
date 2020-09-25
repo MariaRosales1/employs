@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+</head>
+
+<body>
+    <nav class="navbar navbar-light">
+        <div class="container">
+            <a class="navbar-brand mr-auto" href="#"><img
+                    src="https://www.jobboom.com/ressources/images/partners/logo_talentcom.png" height="100"
+                    width="300"></a>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row row-content">
+            <div class=" col-12 text-light bg-dark">
+                <strong>TEST: MARIA ISABEL ROSALES SILVA</strong>
+            </div>
+        </div>
+        <div class="row row-content">
+            <div class="col-12">
+                <p class="mt-2">JOBS</p>
+            </div>
+        </div>
+        <div class="row row-content">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Job Title</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Job Url </th>
+                    </tr>
+                </thead>
+                <tbody id="table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <script>
+
+        async function obtenerEmpleos() {
+
+            const url = 'https://www.iceenterprise.com/careers/jobs-results/?category=All&location=All';
+            const urlpaginaEmpleo = "https://www.iceenterprise.com";
+            //const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const proxyUrl = 'https://serene-atoll-35439.herokuapp.com/';
+
+            return fetch(proxyUrl + url).then(rsp => rsp.text()).then(resultado => {
+
+                var indiceComienzoBody = resultado.indexOf("<body");
+                var indiceFinalBody = resultado.indexOf("</body>");
+                var bodyResultado = resultado.substring(indiceComienzoBody, indiceFinalBody + 7);
+
+                var indicePrimerEtiquetaBody = bodyResultado.indexOf(">");
+                var bodySinEtiqueta = bodyResultado.substring(indicePrimerEtiquetaBody + 1, bodyResultado.length - 7);
+
+                var elementoDiv = document.createElement("div");
+                elementoDiv.innerHTML = bodySinEtiqueta;
+
+                var divsEmpleos = elementoDiv.getElementsByClassName("row job-search-result");
+                var empleos = [];
+
+                for (let i = 0; i < divsEmpleos.length; i++) {
+                    var informacionGeneralEmpleo = divsEmpleos[i].getElementsByTagName("div")[0];
+                    var informacionUrl = divsEmpleos[i].getElementsByTagName("div")[1];
+                    var hrefUrl = informacionUrl.innerHTML.split(" ")[1];
+                    var url = urlpaginaEmpleo + hrefUrl.substring(6, hrefUrl.length - 1);
+                    var titulo = informacionGeneralEmpleo.getElementsByTagName("h3")[0];
+                    var localizacion = informacionGeneralEmpleo.getElementsByTagName("p")[0];
+
+                    var empleo = { "title": titulo.textContent, "url": url, "location": localizacion.textContent };
+                    empleos.push(empleo);
+                }
+
+                return empleos;
+
+            }).catch(err => {
+                console.log(err.message)
+            });
+        }
+        async function mostrarTablaEmpleos() {
+            const empleos = await obtenerEmpleos();
+
+            console.log(empleos);
+            var elementoTbody = document.getElementById("table");
+            for (let i = 0; i < empleos.length; i++) {
+                var elementoTr = document.createElement("tr");
+                var elementoTh = document.createElement("th");
+                var elementoTd1 = document.createElement("td");
+                var elementoTd2 = document.createElement("td");
+                var elementoTd3 = document.createElement("td");
+                var elementoAhref = document.createElement("a");
+                elementoAhref.href = empleos[i].url;
+
+                elementoTh.appendChild(document.createTextNode(i + 1));
+                elementoTd1.appendChild(document.createTextNode(empleos[i].title));
+                elementoTd2.appendChild(document.createTextNode(empleos[i].location));
+                elementoAhref.appendChild(document.createTextNode(empleos[i].url));
+                elementoTd3.appendChild(elementoAhref);
+
+                elementoTr.appendChild(elementoTh);
+                elementoTr.appendChild(elementoTd1);
+                elementoTr.appendChild(elementoTd2);
+                elementoTr.appendChild(elementoTd3);
+                elementoTbody.appendChild(elementoTr);
+            }
+        }
+        mostrarTablaEmpleos();
+    </script>
+</body>
+
+</html>
